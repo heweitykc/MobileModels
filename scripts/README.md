@@ -117,6 +117,59 @@ Parsed 43 brands, 265 categories, 6448 products, 10984 model lines, 11796 codes.
 }
 ```
 
+## export_php.py
+
+将 `data/mobile_models_flat.json` 同时导出为 PHP 与 JSON 字典：
+
+- `data/mobile_models.php`        —— PHP 数组
+- `data/mobile_models_dict.json`  —— 内容相同的 JSON 对象
+
+字段说明：
+
+- key：型号代码 (`code`)
+- value：产品名 (`product_name`)
+- 重复 key 只保留首次出现的（按 `parse_brands.py` 输出顺序）
+
+```bash
+python scripts/export_php.py                       # 默认输入/输出
+python scripts/export_php.py --sort                # 按 code 字典序排序
+python scripts/export_php.py --php custom.php --json custom.json
+```
+
+输出大致结构：
+
+```php
+<?php
+
+return [
+    '1503-M02' => '360 手机 N4',
+    'NOH-AN00' => 'HUAWEI Mate 40 Pro',
+    'NOH-AN01' => 'HUAWEI Mate 40 Pro',
+    // ...
+];
+```
+
+```json
+{
+  "1503-M02": "360 手机 N4",
+  "NOH-AN00": "HUAWEI Mate 40 Pro",
+  "NOH-AN01": "HUAWEI Mate 40 Pro"
+}
+```
+
+调用：
+
+```php
+$models = require __DIR__ . '/mobile_models.php';
+echo $models['NOH-AN00']; // HUAWEI Mate 40 Pro
+```
+
+```python
+import json
+models = json.load(open('data/mobile_models_dict.json', encoding='utf-8'))
+print(models['NOH-AN00'])  # HUAWEI Mate 40 Pro
+```
+
 ## 调用示例
 
 ```python
