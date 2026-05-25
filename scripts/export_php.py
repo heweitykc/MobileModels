@@ -14,9 +14,33 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Optional
+
+
+# Match inline codename annotations like "(`aston`)" or "(~`caihong-o`~)" —
+# i.e. any parenthesised group that contains a backtick-wrapped token.
+_INLINE_CODENAME_RE = re.compile(r"\s*\([^()`]*`[^`]+`[^()`]*\)")
+
+# Split a product name on "/" with surrounding whitespace.
+_SLASH_SPLIT_RE = re.compile(r"\s*/\s*")
+
+
+def simplify_name(name: str) -> str:
+    """Reduce a product name to its first display name.
+
+    Removes inline ``(`codename`)`` annotations and keeps only the first
+    ``/``-separated segment, e.g.::
+
+        "一加 Ace 3 / 一加 12R (`aston`) / 一加 Ace 3 原神刻晴定制机"  -> "一加 Ace 3"
+        "Redmi 13 / REDMI 13x"                                       -> "Redmi 13"
+        "一加平板 2 (2024) / 一加平板 Pro (`rainbow`)"                 -> "一加平板 2 (2024)"
+    """
+    cleaned = _INLINE_CODENAME_RE.sub("", name)
+    first = _SLASH_SPLIT_RE.split(cleaned, maxsplit=1)[0]
+    return first.strip()
 
 
 def php_single_quote(s: str) -> str:
@@ -105,7 +129,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             continue
         if code in seen:
             continue
-        seen[code] = name
+        seen[code] = simplify_name(name)
 
     items = sorted(seen.items()) if args.sort else list(seen.items())
 
